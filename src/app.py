@@ -2,10 +2,12 @@ from flask import Flask, request, g, session, Response
 import json
 import sqlite3
 from hashlib import md5
+from flask_cors import CORS
 
 DATABASE_FILENAME = 'trellinho.sqlite3'
 APP = Flask(__name__)
 APP.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
+CORS(APP)
 
 
 def get_database():
@@ -63,6 +65,16 @@ def user__security__question():
         return json.dumps({'info': 'Questao recuperada com sucesso!', 'security_question': list(DB_CUR.execute(f'SELECT security_question FROM user WHERE email="{request.form["email"]}"'))[0][0]}), 200, {'ContentType': 'application/json'}
     else:
         return json.dumps({'info': 'Email ja cadastrado!'}), 500, {'ContentType': 'application/json'}
+
+
+@APP.route('/user/security/answer', methods=['POST'])
+def user__security__answer():
+    DB_CUR = get_database().cursor()
+    if list(DB_CUR.execute(f'SELECT COUNT(*) FROM user WHERE email="{request.form["email"]}"'))[0][0] == 0:
+        return json.dumps({'info': 'Erro! Email nao cadastrado!'}), 500, {'ContentType': 'application/json'}
+
+    if list(DB_CUR.execute(f'SELECT COUNT(*) FROM user WHERE email="{request.form["email"]}" and security_answer="{md5(request.form["security_answer"].encode()).hexdigest()}"'))[0][0] == 0:
+        return json.dumps({'info': 'Erro! Email nao cadastrado!'}), 500, {'ContentType': 'application/json'}
 
 
 @APP.route('/', methods=['GET'])
