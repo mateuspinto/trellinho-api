@@ -43,7 +43,7 @@ def user__login():
         return {'error': 1, 'error_message': 'Erro! Email ou senha incorretos!'}
     else:
         session['email'] = request.form['email']
-        return {'error': 0}
+        return {'error': 0, 'response': {'email':session['email']}}
 
 
 @APP.route('/user/logout', methods=['POST'])
@@ -103,7 +103,7 @@ def task__get_all():
     if not 'email' in session:
         return {'error': 1, 'error_message': 'Erro! Impossível cadastrar uma tarefa para um usuario não logado!'}
     else:
-        return {'error': 0, 'reponse': {'tasks': list({'id': x[0], 'title': x[1], 'description': x[2], 'target_day': x[3], 'target_month': x[4], 'target_year': x[5], 'priority': x[6], 'status': x[7]} for x in list(DB_CUR.execute(f'SELECT id, title, description, target_day, target_month, target_year, priority, status FROM task WHERE user_email="{session["email"]}"')))}}
+        return {'error': 0, 'response': {'tasks': list({'id': x[0], 'title': x[1], 'description': x[2], 'target_day': x[3], 'target_month': x[4], 'target_year': x[5], 'priority': x[6], 'status': x[7]} for x in list(DB_CUR.execute(f'SELECT id, title, description, target_day, target_month, target_year, priority, status FROM task WHERE user_email="{session["email"]}"')))}}
 
 
 @APP.route('/task/delete', methods=['POST'])
