@@ -32,7 +32,6 @@ def user__register():
     else:
         DB_CUR.execute(f'INSERT INTO user VALUES ("{request.form["email"]}", "{md5(request.form["password"].encode()).hexdigest()}", "{request.form["security_question"]}", "{md5(request.form["security_answer"].encode()).hexdigest()}", "{request.form["name"]}", {int(request.form["birthday_day"])}, {int(request.form["birthday_month"])}, {int(request.form["birthday_year"])})')
         get_database().commit()
-
         return {'error': 0}
 
 
@@ -57,13 +56,22 @@ def user__logout():
         return {'error': 0}
 
 
+@APP.route('/user/get', methods=['POST'])
+def user__get():
+    DB_CUR = get_database().cursor()
+    if not 'email' in session:
+        return {'error': 1, 'error_message': 'Erro! Impossível conseguir informações de um usuário não logado!'}
+    else:
+        return {'error': 0, 'response': list({'email': x[0], 'name': x[1], 'birthday_day': x[2], 'birthday_month': x[3], 'birthday_year': x[4]} for x in DB_CUR.execute(f'SELECT email, name, birthday_day, birthday_month, birthday_year FROM user WHERE email="{session["email"]}"'))[0]}
+
+
 @APP.route('/user/security/question', methods=['POST'])
 def user__security__question():
     DB_CUR = get_database().cursor()
     if list(DB_CUR.execute(f'SELECT COUNT(*) FROM user WHERE email="{request.form["email"]}"'))[0][0] == 0:
         return {'error': 1, 'error_message': 'Erro! Email não cadastrado!'}
     else:
-        return {'error': 0, 'reponse': {'security_question': list(DB_CUR.execute(f'SELECT security_question FROM user WHERE email="{request.form["email"]}"'))[0][0]}}
+        return {'error': 0, 'reponse': {'security_question': list(DB_CUR.execute(f'SELECT security_question FROM user WHERE email="{request.form["email"]}"'))}}
 
 
 @APP.route('/user/security/answer', methods=['POST'])
@@ -79,8 +87,8 @@ def user__security__answer():
         return {'error': 0}
 
 
-@APP.route('/task/create', methods=['POST'])
-def task__create():
+@APP.route('/task/register', methods=['POST'])
+def task__register():
     DB_CUR = get_database().cursor()
     if not 'email' in session:
         return {'error': 1, 'error_message': 'Erro! Impossível cadastrar uma tarefa para um usuario não logado!'}
@@ -96,7 +104,33 @@ def task__get_all():
     if not 'email' in session:
         return {'error': 1, 'error_message': 'Erro! Impossível cadastrar uma tarefa para um usuario não logado!'}
     else:
-        return {'error': 0, 'reponse': {'tasks': list({'title': x[0], 'description': x[1], 'target_day': x[2], 'target_month': x[3], 'target_year': x[4], 'priority': x[5], 'status': x[6]} for x in list(DB_CUR.execute(f'SELECT title, description, target_day, target_month, target_year, priority, status FROM task WHERE user_email="{session["email"]}"')))}}
+        return {'error': 0, 'reponse': {'tasks': list({'id': x[0], 'title': x[1], 'description': x[2], 'target_day': x[3], 'target_month': x[4], 'target_year': x[5], 'priority': x[6], 'status': x[7]} for x in list(DB_CUR.execute(f'SELECT id, title, description, target_day, target_month, target_year, priority, status FROM task WHERE user_email="{session["email"]}"')))}}
+
+
+@APP.route('/task/delete', methods=['POST'])
+def task__delete():
+    DB_CUR = get_database().cursor()
+    if not 'email' in session:
+        return {'error': 1, 'error_message': 'Erro! Impossível remover uma tarefa de um usuario não logado!'}
+    elif list(DB_CUR.execute(f'SELECT COUNT(*) FROM task WHERE id={request.form["id"]} AND user_email="{session["email"]}"'))[0][0] == 0:
+        return {'error': 1, 'error_message': 'Erro! Não há tarefa com esse ID!'}
+    else:
+        DB_CUR.execute(f'DELETE FROM task WHERE id={int(request.form["id"])} AND user_email="{session["email"]}"')
+        get_database().commit()
+        return {'error': 0}
+
+
+@APP.route('/task/status/set', methods=['POST'])
+def task__set_status():
+    DB_CUR = get_database().cursor()
+    if not 'email' in session:
+        return {'error': 1, 'error_message': 'Erro! Impossível modificar a prioridade de uma tarefa de um usuario não logado!'}
+    elif list(DB_CUR.execute(f'SELECT COUNT(*) FROM task WHERE id={request.form["id"]} AND user_email="{session["email"]}"'))[0][0] == 0:
+        return {'error': 1, 'error_message': 'Erro! Não há tarefa com esse ID!'}
+    else:
+        DB_CUR.execute(f'UPDATE task SET status={int(request.form["status"])} WHERE id={int(request.form["id"])} AND user_email="{session["email"]}"')
+        get_database().commit()
+        return {'error': 0}
 
 
 @APP.route('/', methods=['GET', 'POST'])
