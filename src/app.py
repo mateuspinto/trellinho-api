@@ -7,7 +7,7 @@ from flask_cors import CORS
 DATABASE_FILENAME = 'trellinho.sqlite3'
 APP = Flask(__name__)
 APP.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
-CORS(APP)
+CORS(APP, supports_credentials=True)
 
 
 def get_database():
@@ -40,13 +40,13 @@ def user__register():
 def user__login():
     DB_CUR = get_database().cursor()
     if 'email' in session:
-        return json.dumps({'info': f'Erro! Ja logado como {session["email"]}'}), 500, {'ContentType': 'application/json'}
+        return json.dumps({'info': f'Erro! Ja logado como {session["email"]}'}), 200, {'ContentType': 'application/json'}
 
     if list(DB_CUR.execute(f'SELECT COUNT(*) FROM user WHERE email="{request.form["email"]}" AND password="{md5(request.form["password"].encode()).hexdigest()}"'))[0][0] == 1:
         session['email'] = request.form['email']
-        return json.dumps({'info': 'Logado com sucesso!'}), 200, {'ContentType': 'application/json'}
+        return {'info': 'Logado com sucesso!'}
     else:
-        return json.dumps({'info': 'Erro! Email ou senha incorretos!'}), 500, {'ContentType': 'application/json'}
+        return json.dumps({'info': 'Erro! Email ou senha incorretos!'}), 200, {'ContentType': 'application/json'}
 
 
 @APP.route('/user/logout', methods=['POST'])
