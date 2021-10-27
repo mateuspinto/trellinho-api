@@ -1,5 +1,4 @@
-from flask import Flask, request, g, session, Response
-import json
+from flask import Flask, request, g, session
 import sqlite3
 from hashlib import md5
 from flask_cors import CORS
