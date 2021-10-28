@@ -61,7 +61,7 @@ def user__security__question():
     if list(DB_CUR.execute(f'SELECT COUNT(*) FROM user WHERE email="{request.form["email"]}"'))[0][0] == 0:
         return {'error': 1, 'error_message': 'Erro! Email não cadastrado!'}
     else:
-        return {'error': 0, 'reponse': {'security_question': list(DB_CUR.execute(f'SELECT security_question FROM user WHERE email="{request.form["email"]}"'))}}
+        return {'error': 0, 'response': {'security_question': list(DB_CUR.execute(f'SELECT security_question FROM user WHERE email="{request.form["email"]}"'))[0][0]}}
 
 
 @APP.route('/user/security/answer', methods=['POST'])
