@@ -43,7 +43,7 @@ def user__login():
         return {'error': 1, 'error_message': 'Erro! Email ou senha incorretos!'}
     else:
         session['email'] = request.form['email']
-        return {'error': 0, 'response': {'email':session['email']}}
+        return {'error': 0, 'response': list({'email': x[0], 'name': x[1], 'birthday_day': x[2], 'birthday_month': x[3], 'birthday_year': x[4]} for x in DB_CUR.execute(f'SELECT email, name, birthday_day, birthday_month, birthday_year FROM user WHERE email="{request.form["email"]}"'))[0]}
 
 
 @APP.route('/user/logout', methods=['POST'])
@@ -53,15 +53,6 @@ def user__logout():
     else:
         session.pop('email', None)
         return {'error': 0}
-
-
-@APP.route('/user/get', methods=['POST'])
-def user__get():
-    DB_CUR = get_database().cursor()
-    if not 'email' in session:
-        return {'error': 1, 'error_message': 'Erro! Impossível conseguir informações de um usuário não logado!'}
-    else:
-        return {'error': 0, 'response': list({'email': x[0], 'name': x[1], 'birthday_day': x[2], 'birthday_month': x[3], 'birthday_year': x[4]} for x in DB_CUR.execute(f'SELECT email, name, birthday_day, birthday_month, birthday_year FROM user WHERE email="{session["email"]}"'))[0]}
 
 
 @APP.route('/user/security/question', methods=['POST'])
@@ -92,7 +83,7 @@ def task__register():
     if not 'email' in session:
         return {'error': 1, 'error_message': 'Erro! Impossível cadastrar uma tarefa para um usuario não logado!'}
     else:
-        DB_CUR.execute(f'INSERT INTO task (user_email, title, description, target_day, target_month, target_year, priority, status) VALUES ("{session["email"]}", "{request.form["title"]}", "{request.form["description"]}", {int(request.form["target_day"])}, {int(request.form["target_month"])}, {int(request.form["target_year"])}, {int(request.form["priority"])}, 0)')
+        DB_CUR.execute(f'INSERT INTO task (user_email, title, description, location, target_day, target_month, target_year, priority, status) VALUES ("{session["email"]}", "{request.form["title"]}", "{request.form["description"]}", "{request.form["location"]}", {int(request.form["target_day"])}, {int(request.form["target_month"])}, {int(request.form["target_year"])}, {int(request.form["priority"])}, 0)')
         get_database().commit()
         return {'error': 0}
 
@@ -103,7 +94,7 @@ def task__get_all():
     if not 'email' in session:
         return {'error': 1, 'error_message': 'Erro! Impossível cadastrar uma tarefa para um usuario não logado!'}
     else:
-        return {'error': 0, 'response': {'tasks': list({'id': x[0], 'title': x[1], 'description': x[2], 'target_day': x[3], 'target_month': x[4], 'target_year': x[5], 'priority': x[6], 'status': x[7]} for x in list(DB_CUR.execute(f'SELECT id, title, description, target_day, target_month, target_year, priority, status FROM task WHERE user_email="{session["email"]}"')))}}
+        return {'error': 0, 'response': {'tasks': list({'id': x[0], 'title': x[1], 'description': x[2], 'location': x[3], 'target_day': x[4], 'target_month': x[5], 'target_year': x[6], 'priority': x[7], 'status': x[8]} for x in list(DB_CUR.execute(f'SELECT id, title, description, location, target_day, target_month, target_year, priority, status FROM task WHERE user_email="{session["email"]}"')))}}
 
 
 @APP.route('/task/delete', methods=['POST'])
