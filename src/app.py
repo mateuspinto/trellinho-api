@@ -94,7 +94,7 @@ def task__get_all():
     if not 'email' in session:
         return {'error': 1, 'error_message': 'Erro! Impossível cadastrar uma tarefa para um usuario não logado!'}
     else:
-        return {'error': 0, 'response': {'tasks': list({'id': x[0], 'title': x[1], 'description': x[2], 'location': x[3], 'target_day': x[4], 'target_month': x[5], 'target_year': x[6], 'priority': x[7], 'status': x[8]} for x in list(DB_CUR.execute(f'SELECT id, title, description, location, target_day, target_month, target_year, priority, status FROM task WHERE user_email="{session["email"]}"')))}}
+        return {'error': 0, 'response': {'tasks': list({'id': x[0], 'title': x[1], 'description': x[2], 'location': x[3], 'target_day': x[4], 'target_month': x[5], 'target_year': x[6], 'priority': x[7], 'status': x[8]} for x in list(DB_CUR.execute(f'SELECT id, title, description, location, target_day, target_month, target_year, priority, status FROM task WHERE user_email="{session["email"]}" ORDER BY priority DESC')))}}
 
 
 @APP.route('/task/delete', methods=['POST'])
